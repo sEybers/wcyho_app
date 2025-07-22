@@ -1,5 +1,5 @@
 import React from 'react';
-import './MultiDayEvent.css';
+import '../../css/MultiDayEvent.css';
 
 const MultiDayEvent = ({ selectedDays, handleMultiDayEvent, handleDayToggle, statusOptions }) => {
     return (

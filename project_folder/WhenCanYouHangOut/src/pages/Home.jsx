@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import SleepSchedule from '../components/SleepSchedule/SleepSchedule';
 import MultiDayEvent from '../components/MultiDayEvent/MultiDayEvent';
 import DaySchedule from '../components/DaySchedule/DaySchedule';
-import './Home.css';
+import '../css/Home.css';
+
 
 function Home() {
     const [sleepSchedule, setSleepSchedule] = useState({
@@ -139,7 +140,16 @@ function Home() {
         });
     };
 
-    // Add this new handler function
+    // Add this helper function at the top of your Home component
+const isDuplicateTimeRange = (existingRanges, newRange) => {
+    return existingRanges.some(range => 
+        range.start === newRange.start && 
+        range.end === newRange.end && 
+        range.title === newRange.title
+    );
+};
+
+    // Replace or update your existing handleMultiDayEvent function
     const handleMultiDayEvent = (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -162,18 +172,26 @@ function Home() {
             return;
         }
 
+        const newTimeRange = {
+            title: title || 'Untitled',
+            start: startTime,
+            end: endTime,
+            status: status,
+            id: Date.now()
+        };
+
         // Update schedule for selected days
         setSchedule(prev => {
             const newSchedule = { ...prev };
             Object.entries(selectedDays).forEach(([day, isSelected]) => {
                 if (isSelected) {
-                    newSchedule[day].timeRanges.push({
-                        title: title || 'Untitled',
-                        start: startTime,
-                        end: endTime,
-                        status: status,
-                        id: Date.now() + Math.random()
-                    });
+                    // Check for duplicates before adding
+                    if (!isDuplicateTimeRange(newSchedule[day].timeRanges, newTimeRange)) {
+                        newSchedule[day].timeRanges.push({
+                            ...newTimeRange,
+                            id: Date.now() + Math.random() // Ensure unique ID for each instance
+                        });
+                    }
                 }
             });
             return newSchedule;
@@ -206,7 +224,6 @@ function Home() {
 
     return (
         <div className="home-container">
-            <h3>WHEN CAN YOU HANGOUT?</h3>
             <h1>Dashboard</h1>
 
             <div className='week-card'>

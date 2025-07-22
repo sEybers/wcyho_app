@@ -1,0 +1,64 @@
+seane\workspace_se\wcyho_app\project_folder\WhenCanYouHangOut\src\components\NavBar\NavBar.css
+.navbar {
+    background-color: #333;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.navbar-container {
+    background-color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1100px;
+    padding: 0 20px;
+}
+
+.navbar-logo {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item {
+    margin: 0 15px;
+}
+
+.nav-link {
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: #555;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .navbar-container {
+        padding: 0 10px;
+    }
+
+    .nav-item {
+        margin: 0 8px;
+    }
+}

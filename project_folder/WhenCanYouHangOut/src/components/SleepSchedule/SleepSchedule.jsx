@@ -1,5 +1,5 @@
 import React from 'react';
-import './SleepSchedule.css';
+import '../../css/SleepSchedule.css';
 
 const SleepSchedule = ({ sleepSchedule, handleSleepSchedule, handleRemoveSleepSchedule, formatTime }) => {
     return (

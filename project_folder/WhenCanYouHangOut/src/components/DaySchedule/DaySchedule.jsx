@@ -1,5 +1,5 @@
 import React from 'react';
-import './DaySchedule.css';
+import '../../css/DaySchedule.css';
 
 const DaySchedule = ({ day, timeRanges, handleAddTimeRange, handleRemoveTimeRange, formatTimeSlot, statusOptions }) => {
     return (
