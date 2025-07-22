@@ -1,0 +1,132 @@
+/* Multi-day Event Section Container */
+.multi-day-event-section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Section Header */
+.multi-day-event-section h2 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+/* Days Selector Container */
+.days-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 4px;
+}
+
+/* Day Checkbox Styling */
+.day-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.day-checkbox:hover {
+    background-color: #e9ecef;
+}
+
+.day-checkbox.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
+/* Form Styling */
+.multi-day-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Title Input */
+.title-input {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
+}
+
+.title-input:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Time Inputs Container */
+.time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Time Input Fields */
+.time-input {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    min-width: 120px;
+}
+
+/* Status Select */
+.status-select {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: white;
+    min-width: 120px;
+}
+
+/* Add Button */
+.add-btn {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    align-self: flex-start;
+}
+
+.add-btn:hover {
+    background-color: #218838;
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+    .time-inputs {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .status-select {
+        width: 100%;
+    }
+
+    .add-btn {
+        width: 100%;
+    }
+}
