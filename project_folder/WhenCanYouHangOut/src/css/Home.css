@@ -127,3 +127,132 @@
 .add-btn:hover {
     background: #218838;
 }
+
+.time-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 5px 0;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-weight: 500;
+}
+
+.time-slot span {
+    word-break: break-word;
+    margin-right: 10px;
+}
+
+.time-slot.not-free {
+    background-color: #ffe6e6;
+    border-color: #ffcccc;
+}
+
+.time-slot.maybe-free {
+    background-color: #fff3e6;
+    border-color: #ffe0b3;
+}
+
+.time-slot.free {
+    background-color: #e6ffe6;
+    border-color: #ccffcc;
+}
+
+.time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.status-select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.time-ranges {
+    margin: 15px 0;
+}
+
+.title-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.sleep-schedule-section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #dee2e6;
+}
+
+.sleep-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.active-sleep-schedule {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.sleep-schedule-section h2 {
+    margin-bottom: 15px;
+    color: #495057;
+}
+
+.multi-day-event-section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #dee2e6;
+}
+
+.days-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.day-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.day-checkbox.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
+.day-checkbox input {
+    margin-right: 5px;
+}
+
+.multi-day-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
