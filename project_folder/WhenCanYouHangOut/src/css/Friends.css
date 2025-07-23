@@ -1,0 +1,113 @@
+.friends-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.search-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-section form {
+  display: flex;
+  gap: 10px;
+}
+
+.search-type {
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  min-width: 120px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.search-button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+.results-list, .friends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.user-card, .friend-card {
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-info, .friend-info {
+  flex: 1;
+}
+
+.username {
+  font-weight: bold;
+  margin: 0;
+}
+
+.email {
+  color: #6c757d;
+  margin: 5px 0 0 0;
+  font-size: 0.9em;
+}
+
+.add-friend-button, .remove-friend-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.add-friend-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.remove-friend-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.add-friend-button:hover {
+  background-color: #218838;
+}
+
+.remove-friend-button:hover {
+  background-color: #c82333;
+}
+
+@media (max-width: 576px) {
+  .search-section form {
+    flex-direction: column;
+  }
+  
+  .search-button {
+    width: 100%;
+  }
+}

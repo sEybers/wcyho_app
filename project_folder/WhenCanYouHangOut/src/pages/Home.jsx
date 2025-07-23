@@ -2,26 +2,38 @@ import React, { useState } from 'react';
 import SleepSchedule from '../components/SleepSchedule/SleepSchedule';
 import MultiDayEvent from '../components/MultiDayEvent/MultiDayEvent';
 import DaySchedule from '../components/DaySchedule/DaySchedule';
+import WeeklyCalendar from '../components/WeeklyCalendar/WeeklyCalendar';
 import '../css/Home.css';
 
+/**
+ * Home Component
+ * Main dashboard for managing schedules and time ranges
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.schedules - Collection of all user schedules
+ * @param {Function} props.setSchedules - Function to update schedules
+ * @param {string} props.activeScheduleId - ID of currently active schedule
+ * @param {Function} props.setActiveScheduleId - Function to change active schedule
+ */
+function Home({ schedules, setSchedules, activeScheduleId, setActiveScheduleId }) {
+    // Initialize schedule state based on whether there's an active schedule
+    const [schedule, setSchedule] = useState(
+        activeScheduleId && schedules[activeScheduleId] ? schedules[activeScheduleId].schedule : null
+    );
 
-function Home() {
+    // Show form by default if no schedules exist
+    const [showNewScheduleForm, setShowNewScheduleForm] = useState(
+        Object.keys(schedules).length === 0
+    );
+
+    // State for managing sleep schedule
     const [sleepSchedule, setSleepSchedule] = useState({
         start: '',
         end: '',
         enabled: false
     });
 
-    const [schedule, setSchedule] = useState({
-        Sunday: { timeRanges: [] },
-        Monday: { timeRanges: [] },
-        Tuesday: { timeRanges: [] },
-        Wednesday: { timeRanges: [] },
-        Thursday: { timeRanges: [] },
-        Friday: { timeRanges: [] },
-        Saturday: { timeRanges: [] }
-    });
-
+    // State for tracking which days are selected in multi-day event form
     const [selectedDays, setSelectedDays] = useState({
         Sunday: true,
         Monday: true,
@@ -32,7 +44,13 @@ function Home() {
         Saturday: true
     });
 
-    // Handler for adding time ranges with status
+    /**
+     * Handles adding a new time range to a specific day
+     * Validates time inputs and prevents invalid time ranges
+     * 
+     * @param {string} day - Day of the week
+     * @param {Event} e - Form submission event
+     */
     const handleAddTimeRange = (day, e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -64,28 +82,59 @@ function Home() {
             id: Date.now()
         };
         
-        setSchedule(prev => ({
-            ...prev,
+        const newSchedule = {
+            ...schedule,
             [day]: {
-                ...prev[day],
-                timeRanges: [...prev[day].timeRanges, timeRange]
+                ...schedule[day],
+                timeRanges: [...schedule[day].timeRanges, timeRange]
             }
-        }));
+        };
+
+        updateSchedule(newSchedule);
         e.target.reset();
     };
 
-    // Handler for removing time ranges
-    const handleRemoveTimeRange = (day, id) => {
-        setSchedule(prev => ({
+    /**
+     * Updates both local and global schedule states
+     * Ensures consistency between component and app-level states
+     * 
+     * @param {Object} newSchedule - Updated schedule object
+     */
+    const updateSchedule = (newSchedule) => {
+        setSchedule(newSchedule);
+        setSchedules(prev => ({
             ...prev,
-            [day]: {
-                ...prev[day],
-                timeRanges: prev[day].timeRanges.filter(range => range.id !== id)
+            [activeScheduleId]: {
+                ...prev[activeScheduleId],
+                schedule: newSchedule
             }
         }));
     };
 
-    // Add handler for sleep schedule
+    /**
+     * Removes a specific time range from a day's schedule
+     * 
+     * @param {string} day - Day of the week
+     * @param {string|number} id - Unique identifier of the time range
+     */
+    const handleRemoveTimeRange = (day, id) => {
+        const newSchedule = {
+            ...schedule,
+            [day]: {
+                ...schedule[day],
+                timeRanges: schedule[day].timeRanges.filter(range => range.id !== id)
+            }
+        };
+
+        updateSchedule(newSchedule);
+    };
+
+    /**
+     * Handles creation and application of sleep schedule
+     * Applies sleep schedule to all days in the current schedule
+     * 
+     * @param {Event} e - Form submission event
+     */
     const handleSleepSchedule = (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -99,29 +148,31 @@ function Home() {
         });
 
         // Apply sleep schedule to all days
-        setSchedule(prev => {
-            const newSchedule = { ...prev };
-            Object.keys(newSchedule).forEach(day => {
-                // First remove any existing sleep schedules
-                newSchedule[day].timeRanges = newSchedule[day].timeRanges
-                    .filter(range => range.title !== 'Sleep');
-                
-                // Then add the new sleep schedule
-                newSchedule[day].timeRanges.push({
-                    title: 'Sleep',
-                    start: startTime,
-                    end: endTime,
-                    status: 'Not Free',
-                    id: Date.now() + day.length
-                });
+        const newSchedule = { ...schedule };
+        Object.keys(newSchedule).forEach(day => {
+            // First remove any existing sleep schedules
+            newSchedule[day].timeRanges = newSchedule[day].timeRanges
+                .filter(range => range.title !== 'Sleep');
+            
+            // Then add the new sleep schedule
+            newSchedule[day].timeRanges.push({
+                title: 'Sleep',
+                start: startTime,
+                end: endTime,
+                status: 'Not Free',
+                id: Date.now() + day.length
             });
-            return newSchedule;
         });
+
+        updateSchedule(newSchedule);
 
         e.target.reset();
     };
 
-    // Add handler to remove sleep schedule
+    /**
+     * Removes sleep schedule from all days
+     * Resets sleep schedule state
+     */
     const handleRemoveSleepSchedule = () => {
         setSleepSchedule({
             start: '',
@@ -130,26 +181,37 @@ function Home() {
         });
 
         // Remove sleep schedule from all days
-        setSchedule(prev => {
-            const newSchedule = { ...prev };
-            Object.keys(newSchedule).forEach(day => {
-                newSchedule[day].timeRanges = newSchedule[day].timeRanges
-                    .filter(range => range.title !== 'Sleep');
-            });
-            return newSchedule;
+        const newSchedule = { ...schedule };
+        Object.keys(newSchedule).forEach(day => {
+            newSchedule[day].timeRanges = newSchedule[day].timeRanges
+                .filter(range => range.title !== 'Sleep');
         });
+
+        updateSchedule(newSchedule);
     };
 
-    // Add this helper function at the top of your Home component
-const isDuplicateTimeRange = (existingRanges, newRange) => {
-    return existingRanges.some(range => 
-        range.start === newRange.start && 
-        range.end === newRange.end && 
-        range.title === newRange.title
-    );
-};
+    /**
+     * Checks if a time range already exists in the schedule
+     * Prevents duplicate entries
+     * 
+     * @param {Array} existingRanges - Current time ranges
+     * @param {Object} newRange - Time range to check
+     * @returns {boolean} - True if duplicate found
+     */
+    const isDuplicateTimeRange = (existingRanges, newRange) => {
+        return existingRanges.some(range => 
+            range.start === newRange.start && 
+            range.end === newRange.end && 
+            range.title === newRange.title
+        );
+    };
 
-    // Replace or update your existing handleMultiDayEvent function
+    /**
+     * Handles adding events to multiple selected days
+     * Validates time inputs and prevents duplicates
+     * 
+     * @param {Event} e - Form submission event
+     */
     const handleMultiDayEvent = (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -172,35 +234,51 @@ const isDuplicateTimeRange = (existingRanges, newRange) => {
             return;
         }
 
-        const newTimeRange = {
-            title: title || 'Untitled',
-            start: startTime,
-            end: endTime,
-            status: status,
-            id: Date.now()
-        };
+        // Create new schedule object
+        const newSchedule = { ...schedule };
 
-        // Update schedule for selected days
-        setSchedule(prev => {
-            const newSchedule = { ...prev };
-            Object.entries(selectedDays).forEach(([day, isSelected]) => {
-                if (isSelected) {
-                    // Check for duplicates before adding
-                    if (!isDuplicateTimeRange(newSchedule[day].timeRanges, newTimeRange)) {
-                        newSchedule[day].timeRanges.push({
-                            ...newTimeRange,
-                            id: Date.now() + Math.random() // Ensure unique ID for each instance
-                        });
-                    }
+        // Add event to each selected day
+        Object.entries(selectedDays).forEach(([day, isSelected]) => {
+            if (isSelected) {
+                // Create a unique timeRange object for each day
+                const timeRange = {
+                    title: title || 'Untitled',
+                    start: startTime,
+                    end: endTime,
+                    status: status,
+                    id: Date.now() + Math.random() // Ensure unique ID for each instance
+                };
+
+                // Add to day's timeRanges if not duplicate
+                if (!isDuplicateTimeRange(newSchedule[day].timeRanges, timeRange)) {
+                    newSchedule[day].timeRanges = [
+                        ...newSchedule[day].timeRanges,
+                        timeRange
+                    ];
                 }
-            });
-            return newSchedule;
+            }
         });
+
+        // Update the schedule state
+        setSchedule(newSchedule);
+        
+        // Update the schedules state to persist changes
+        setSchedules(prev => ({
+            ...prev,
+            [activeScheduleId]: {
+                ...prev[activeScheduleId],
+                schedule: newSchedule
+            }
+        }));
 
         e.target.reset();
     };
 
-    // Add this toggle handler
+    /**
+     * Toggles selection state of a day in multi-day event form
+     * 
+     * @param {string} day - Day to toggle
+     */
     const handleDayToggle = (day) => {
         setSelectedDays(prev => ({
             ...prev,
@@ -208,10 +286,22 @@ const isDuplicateTimeRange = (existingRanges, newRange) => {
         }));
     };
 
+    /**
+     * Creates a formatted string representation of a time range
+     * 
+     * @param {Object} timeRange - Time range object to format
+     * @returns {string} - Formatted time range string
+     */
     const formatTimeSlot = (timeRange) => {
         return `${timeRange.title}: ${formatTime(timeRange.start)} - ${formatTime(timeRange.end)} (${timeRange.status})`;
     };
 
+    /**
+     * Converts 24-hour time format to 12-hour format with AM/PM
+     * 
+     * @param {string} time - Time in 24-hour format
+     * @returns {string} - Formatted time in 12-hour format
+     */
     const formatTime = (time) => {
         const [hours, minutes] = time.split(':');
         const period = hours >= 12 ? 'PM' : 'AM';
@@ -219,42 +309,170 @@ const isDuplicateTimeRange = (existingRanges, newRange) => {
         return `${hour}:${minutes} ${period}`;
     };
 
-    const days = Object.keys(schedule);
+    // Constants for component operation
+    const days = schedule ? Object.keys(schedule) : [];
     const statusOptions = ['Not Free', 'Maybe Free', 'Free'];
 
+    // Add these handlers before the return statement
+    const handleCreateNewSchedule = (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const scheduleName = formData.get('scheduleName');
+        const scheduleId = Date.now().toString();
+
+        // Create new schedule with empty time ranges
+        const newSchedule = {
+            name: scheduleName,
+            schedule: {
+                Sunday: { timeRanges: [] },
+                Monday: { timeRanges: [] },
+                Tuesday: { timeRanges: [] },
+                Wednesday: { timeRanges: [] },
+                Thursday: { timeRanges: [] },
+                Friday: { timeRanges: [] },
+                Saturday: { timeRanges: [] }
+            }
+        };
+
+        // Update schedules state with new schedule
+        setSchedules(prev => ({
+            ...prev,
+            [scheduleId]: newSchedule
+        }));
+
+        // Switch to the new schedule
+        setActiveScheduleId(scheduleId);
+        setSchedule(newSchedule.schedule);
+        
+        // Close the form
+        setShowNewScheduleForm(false);
+        e.target.reset();
+    };
+
+    const handleSwitchSchedule = (scheduleId) => {
+        setActiveScheduleId(scheduleId);
+        setSchedule(schedules[scheduleId].schedule);
+    };
+
+    const handleDeleteSchedule = (scheduleId) => {
+        setSchedules(prev => {
+            const newSchedules = { ...prev };
+            delete newSchedules[scheduleId];
+            return newSchedules;
+        });
+        
+        // If there are other schedules, switch to the first one
+        // Otherwise, clear the active schedule
+        const remainingIds = Object.keys(schedules).filter(id => id !== scheduleId);
+        if (remainingIds.length > 0) {
+            setActiveScheduleId(remainingIds[0]);
+            setSchedule(schedules[remainingIds[0]].schedule);
+        } else {
+            setActiveScheduleId(null);
+            setSchedule(null);
+            setShowNewScheduleForm(true);
+        }
+    };
+
+    // Component render method with schedule management UI
     return (
         <div className="home-container">
             <h1>Dashboard</h1>
+            
+            {/* Show welcome message if no schedules exist */}
+            {Object.keys(schedules).length === 0 ? (
+                <div className="welcome-section">
+                    <h2>Welcome to When Can You Hang Out?</h2>
+                    <p>Get started by creating your first schedule.</p>
+                </div>
+            ) : (
+                <div className="schedule-management">
+                    <div className="schedule-selector">
+                        <select 
+                            value={activeScheduleId || ''}
+                            onChange={(e) => handleSwitchSchedule(e.target.value)}
+                        >
+                            {Object.entries(schedules).map(([id, { name }]) => (
+                                <option key={id} value={id}>{name}</option>
+                            ))}
+                        </select>
+                        <button 
+                            onClick={() => handleDeleteSchedule(activeScheduleId)}
+                            className="delete-schedule-btn"
+                        >
+                            Delete Schedule
+                        </button>
+                    </div>
+                    
+                    <button 
+                        onClick={() => setShowNewScheduleForm(true)}
+                        className="new-schedule-btn"
+                    >
+                        Create New Schedule
+                    </button>
+                </div>
+            )}
+            
+            {showNewScheduleForm && (
+                <form onSubmit={handleCreateNewSchedule} className="new-schedule-form">
+                    <input
+                        type="text"
+                        name="scheduleName"
+                        placeholder="Enter schedule name"
+                        required
+                        autoFocus
+                    />
+                    <button type="submit">Create</button>
+                    {Object.keys(schedules).length > 0 && (
+                        <button 
+                            type="button" 
+                            onClick={() => setShowNewScheduleForm(false)}
+                        >
+                            Cancel
+                        </button>
+                    )}
+                </form>
+            )}
 
-            <div className='week-card'>
-                <SleepSchedule 
-                    sleepSchedule={sleepSchedule}
-                    handleSleepSchedule={handleSleepSchedule}
-                    handleRemoveSleepSchedule={handleRemoveSleepSchedule}
-                    formatTime={formatTime}
-                />
-                
-                <MultiDayEvent 
-                    selectedDays={selectedDays}
-                    handleMultiDayEvent={handleMultiDayEvent}
-                    handleDayToggle={handleDayToggle}
-                    statusOptions={statusOptions}
-                />
+            {/* Only show schedule content if there is an active schedule */}
+            {activeScheduleId && schedule && (
+                <>
+                    <div className="week-card">
+                        <SleepSchedule
+                            sleepSchedule={sleepSchedule}
+                            handleSleepSchedule={handleSleepSchedule}
+                            handleRemoveSleepSchedule={handleRemoveSleepSchedule}
+                            formatTime={formatTime}
+                        />
 
-                <div className='week-card-content'>
-                    {Object.entries(schedule).map(([day, { timeRanges }]) => (
-                        <DaySchedule
-                            key={day}
-                            day={day}
-                            timeRanges={timeRanges}
-                            handleAddTimeRange={handleAddTimeRange}
-                            handleRemoveTimeRange={handleRemoveTimeRange}
-                            formatTimeSlot={formatTimeSlot}
+                        <MultiDayEvent
+                            selectedDays={selectedDays}
+                            handleMultiDayEvent={handleMultiDayEvent}
+                            handleDayToggle={handleDayToggle}
                             statusOptions={statusOptions}
                         />
-                    ))}
-                </div>
-            </div>
+
+                        <div className='week-card-content'>
+                            {Object.entries(schedule).map(([day, { timeRanges }]) => (
+                                <DaySchedule
+                                    key={day}
+                                    day={day}
+                                    timeRanges={timeRanges}
+                                    handleAddTimeRange={handleAddTimeRange}
+                                    handleRemoveTimeRange={handleRemoveTimeRange}
+                                    formatTimeSlot={formatTimeSlot}
+                                    statusOptions={statusOptions}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="calendar-section">
+                        <h2>Weekly View</h2>
+                        <WeeklyCalendar schedule={schedule} />
+                    </div>
+                </>
+            )}
         </div>
     );
 }

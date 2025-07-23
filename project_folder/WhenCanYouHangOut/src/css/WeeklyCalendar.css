@@ -1,0 +1,124 @@
+.weekly-calendar {
+    display: flex;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.time-labels {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 1;
+    border-right: 1px solid #dee2e6;
+    width: 60px;
+}
+
+.corner-spacer {
+    height: 40px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.hour-label {
+    height: 60px;
+    padding: 4px;
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.calendar-grid {
+    display: flex;
+    flex: 1;
+}
+
+.day-column {
+    flex: 1;
+    min-width: 150px;
+    position: relative;
+    border-right: 1px solid #dee2e6;
+}
+
+.day-header {
+    height: 40px;
+    padding: 8px;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 1px solid #dee2e6;
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.day-events {
+    position: relative;
+}
+
+.hour-cell {
+    height: 60px;
+    border-bottom: 1px solid #eee;
+}
+
+.event-block {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 0.8rem;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-block.not-free {
+    background-color: #ffe6e6;
+    border: 1px solid #ffcccc;
+}
+
+.event-block.maybe-free {
+    background-color: #fff3e6;
+    border: 1px solid #ffe0b3;
+}
+
+.event-block.free {
+    background-color: #e6ffe6;
+    border: 1px solid #ccffcc;
+}
+
+.event-block:hover {
+    z-index: 2;
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.event-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.event-title {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.event-time {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .weekly-calendar {
+        font-size: 0.8rem;
+    }
+
+    .day-column {
+        min-width: 120px;
+    }
+}
