@@ -1,0 +1,20 @@
+.page-container {
+    padding: 1rem;
+    margin: 0 auto;
+    max-width: 98%;
+    min-height: calc(100vh - 60px); /* Accounts for navbar height */
+}
+
+.content-wrapper {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+    color: #343a40;
+    text-align: center;
+}

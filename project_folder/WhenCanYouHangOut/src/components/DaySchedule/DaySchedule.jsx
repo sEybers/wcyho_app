@@ -1,25 +1,31 @@
 import React from 'react';
 import '../../css/DaySchedule.css';
 
-const DaySchedule = ({ day, timeRanges, handleAddTimeRange, handleRemoveTimeRange, formatTimeSlot, statusOptions }) => {
+const DaySchedule = ({ day, timeRanges, handleAddTimeRange, handleRemoveTimeRange, statusOptions }) => {
     return (
-        <div className="day-container">
-            <h4>{day}</h4>
-            <div className="time-ranges">
-                <h5>Time Ranges:</h5>
-                {timeRanges.map((timeRange) => (
-                    <div key={timeRange.id} 
-                         className={`time-slot ${timeRange.status.toLowerCase().replace(' ', '-')}`}>
-                        <span>{formatTimeSlot(timeRange)}</span>
-                        <button 
-                            onClick={() => handleRemoveTimeRange(day, timeRange.id)}
-                            className="remove-btn"
-                        >
-                            ×
-                        </button>
+        <div className="day-schedule">
+            <h3 className="day-header">{day}</h3>
+            {timeRanges.map((range) => (
+                <div key={range.id} className="time-range">
+                    <div className="time-range-header">
+                        <div className="time-range-info">
+                            <div className="time-range-title">{range.title}</div>
+                            <div className="time-range-time">
+                                {range.start} - {range.end}
+                            </div>
+                        </div>
+                        <span className={`time-range-status ${range.status.replace(' ', '-')}`}>
+                            {range.status}
+                        </span>
                     </div>
-                ))}
-            </div>
+                    <button
+                        onClick={() => handleRemoveTimeRange(day, range.id)}
+                        className="remove-time-range"
+                    >
+                        Remove
+                    </button>
+                </div>
+            ))}
             
             <form 
                 onSubmit={(e) => handleAddTimeRange(day, e)} 
@@ -46,7 +52,7 @@ const DaySchedule = ({ day, timeRanges, handleAddTimeRange, handleRemoveTimeRang
                         required
                         className="time-input"
                     />
-                    <select name="status" required className="status-select">
+                    <select name="status" required className="status-select" defaultValue="Free">
                         {statusOptions.map(status => (
                             <option key={status} value={status}>
                                 {status}

@@ -1,0 +1,149 @@
+.hourly-schedule-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin: 20px 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+}
+
+.time-labels {
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: white;
+    border-right: 2px solid #dee2e6;
+    width: 60px;
+    flex-shrink: 0;
+    margin-top: 40px; /* Changed from padding-top to margin-top */
+}
+
+.time-label {
+    height: 50px;
+    padding: 0;
+    font-size: 0.85rem;
+    color: #495057;
+    display: flex;
+    align-items: start; /* Changed from center to start */
+    justify-content: flex-end;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    padding-right: 10px;
+    padding-top: 2px; /* Added to align text with grid lines */
+    transform: translateY(-50%); /* Move label up to align with grid lines */
+}
+
+.hourly-schedule {
+    display: flex;
+    position: relative;
+    min-width: min-content;
+    padding: 10px;
+    flex: 1;
+}
+
+/* Remove the margin-left since we're using flex */
+.hourly-schedule {
+    margin-left: 0;
+}
+
+.day-column {
+    min-width: 80px; /* Reduced from 120px */
+    border-right: 1px solid #dee2e6;
+}
+
+.day-column:last-child {
+    border-right: none;
+}
+
+.day-label {
+    height: 40px;
+    padding: 5px; /* Reduced padding */
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 2px solid #dee2e6;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 0.9rem; /* Added smaller font size */
+}
+
+.hour-cell {
+    height: 50px;  /* Match time label height */
+    border-bottom: 1px solid #dee2e6;
+    background-color: rgba(40, 167, 69, 0.3);
+}
+
+/* Status colors */
+.hour-cell.free {
+    background-color: rgba(40, 167, 69, 0.3);
+}
+
+.hour-cell.not-free {
+    background-color: rgba(220, 53, 69, 0.3);
+}
+
+.hour-cell.maybe-free {
+    background-color: rgba(255, 193, 7, 0.3);
+}
+
+/* Hover effects */
+.hour-cell:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .time-labels {
+        width: 50px;
+    }
+
+    .time-label {
+        font-size: 0.75rem;
+        padding: 3px;
+        padding-right: 8px;
+    }
+
+    .hourly-schedule {
+        margin-left: 50px;
+    }
+
+    .day-column {
+        min-width: 60px; /* Even smaller on mobile */
+    }
+
+    .hour-label {
+        font-size: 0.75rem;
+        padding: 3px;
+        padding-right: 8px;
+    }
+
+    .day-label {
+        font-size: 0.8rem;
+        padding: 3px;
+    }
+
+    .hour-cell {
+        height: 50px;  /* Keep consistent height */
+    }
+}
+
+/* Add specific styles for home page */
+.home-view .hour-label {
+    height: 50px; /* Match the mobile height */
+    width: 35px;  /* Match the mobile time-column width */
+    padding: 2px;
+    font-size: 0.75rem;
+}
+
+.home-view .time-column {
+    width: 50px;
+}
+
+.home-view .hour-cell {
+    height: 50px;  /* Keep consistent height */
+}
