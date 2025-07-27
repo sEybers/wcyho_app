@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import SleepSchedule from '../components/SleepSchedule/SleepSchedule';
 import MultiDayEvent from '../components/MultiDayEvent/MultiDayEvent';
 import DaySchedule from '../components/DaySchedule/DaySchedule';
-import WeeklyCalendar from '../components/WeeklyCalendar/WeeklyCalendar';
+import HourlySchedule from '../components/HourlySchedule/HourlySchedule';
 import '../css/Home.css';
-
+//
 /**
  * Home Component
  * Main dashboard for managing schedules and time ranges
@@ -311,7 +311,8 @@ function Home({ schedules, setSchedules, activeScheduleId, setActiveScheduleId }
 
     // Constants for component operation
     const days = schedule ? Object.keys(schedule) : [];
-    const statusOptions = ['Not Free', 'Maybe Free', 'Free'];
+    // Update the order to make Free first
+    const statusOptions = ['Free', 'Maybe Free', 'Not Free'];
 
     // Add these handlers before the return statement
     const handleCreateNewSchedule = (e) => {
@@ -436,43 +437,41 @@ function Home({ schedules, setSchedules, activeScheduleId, setActiveScheduleId }
 
             {/* Only show schedule content if there is an active schedule */}
             {activeScheduleId && schedule && (
-                <>
-                    <div className="week-card">
-                        <SleepSchedule
-                            sleepSchedule={sleepSchedule}
-                            handleSleepSchedule={handleSleepSchedule}
-                            handleRemoveSleepSchedule={handleRemoveSleepSchedule}
-                            formatTime={formatTime}
-                        />
+                <div className="week-card">
+                    <SleepSchedule
+                        sleepSchedule={sleepSchedule}
+                        handleSleepSchedule={handleSleepSchedule}
+                        handleRemoveSleepSchedule={handleRemoveSleepSchedule}
+                        formatTime={formatTime}
+                    />
 
-                        <MultiDayEvent
-                            selectedDays={selectedDays}
-                            handleMultiDayEvent={handleMultiDayEvent}
-                            handleDayToggle={handleDayToggle}
-                            statusOptions={statusOptions}
-                        />
+                    <MultiDayEvent
+                        selectedDays={selectedDays}
+                        handleMultiDayEvent={handleMultiDayEvent}
+                        handleDayToggle={handleDayToggle}
+                        statusOptions={statusOptions}
+                    />
 
-                        <div className='week-card-content'>
-                            {Object.entries(schedule).map(([day, { timeRanges }]) => (
-                                <DaySchedule
-                                    key={day}
-                                    day={day}
-                                    timeRanges={timeRanges}
-                                    handleAddTimeRange={handleAddTimeRange}
-                                    handleRemoveTimeRange={handleRemoveTimeRange}
-                                    formatTimeSlot={formatTimeSlot}
-                                    statusOptions={statusOptions}
-                                />
-                            ))}
-                        </div>
+                    <div className='week-card-content'>
+                        {Object.entries(schedule).map(([day, { timeRanges }]) => (
+                            <DaySchedule
+                                key={day}
+                                day={day}
+                                timeRanges={timeRanges}
+                                handleAddTimeRange={handleAddTimeRange}
+                                handleRemoveTimeRange={handleRemoveTimeRange}
+                                formatTimeSlot={formatTimeSlot}
+                                statusOptions={statusOptions}
+                            />
+                        ))}
                     </div>
-
-                    <div className="calendar-section">
-                        <h2>Weekly View</h2>
-                        <WeeklyCalendar schedule={schedule} />
-                    </div>
-                </>
+                </div>
             )}
+
+            <HourlySchedule 
+                schedule={schedule} 
+                className="home-view"
+            />
         </div>
     );
 }

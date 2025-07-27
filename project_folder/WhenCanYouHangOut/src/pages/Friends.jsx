@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import FriendRequests from '../components/FriendRequests/FriendRequests';
 import '../css/Friends.css';
 
-function Friends() {
+function Friends({ userId }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('username'); // or 'email'
   const [friends, setFriends] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
 
   // Mock function to simulate searching users
   const handleSearch = (e) => {
@@ -15,13 +18,32 @@ function Friends() {
       { id: 1, username: 'john_doe', email: 'john@example.com' },
       { id: 2, username: 'jane_smith', email: 'jane@example.com' },
     ];
-    setSearchResults(mockResults);
+    setSearchResults(mockResults.filter(user => 
+      !friends.find(friend => friend.id === user.id) &&
+      !sentRequests.find(request => request.id === user.id)
+    ));
   };
 
-  const handleAddFriend = (user) => {
-    if (!friends.find(friend => friend.id === user.id)) {
-      setFriends([...friends, user]);
+  const handleSendRequest = (user) => {
+    // This would typically be an API call
+    setSentRequests([...sentRequests, user]);
+    setSearchResults(searchResults.filter(result => result.id !== user.id));
+  };
+
+  const handleAcceptRequest = (requestId) => {
+    const request = friendRequests.find(req => req.id === requestId);
+    if (request) {
+      setFriends([...friends, request]);
+      setFriendRequests(friendRequests.filter(req => req.id !== requestId));
     }
+  };
+
+  const handleRejectRequest = (requestId) => {
+    setFriendRequests(friendRequests.filter(req => req.id !== requestId));
+  };
+
+  const handleCancelRequest = (userId) => {
+    setSentRequests(sentRequests.filter(request => request.id !== userId));
   };
 
   const handleRemoveFriend = (userId) => {
@@ -32,6 +54,12 @@ function Friends() {
     <div className="friends-container">
       <h1>Friends</h1>
       
+      <FriendRequests 
+        requests={friendRequests}
+        onAccept={handleAcceptRequest}
+        onReject={handleRejectRequest}
+      />
+
       {/* Search Section */}
       <div className="search-section">
         <form onSubmit={handleSearch}>
@@ -68,10 +96,33 @@ function Friends() {
                   <p className="email">{user.email}</p>
                 </div>
                 <button 
-                  onClick={() => handleAddFriend(user)}
+                  onClick={() => handleSendRequest(user)}
                   className="add-friend-button"
                 >
-                  Add Friend
+                  Send Request
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sent Requests */}
+      {sentRequests.length > 0 && (
+        <div className="sent-requests">
+          <h2>Sent Requests</h2>
+          <div className="requests-list">
+            {sentRequests.map(request => (
+              <div key={request.id} className="request-card">
+                <div className="request-info">
+                  <p className="username">{request.username}</p>
+                  <p className="email">{request.email}</p>
+                </div>
+                <button 
+                  onClick={() => handleCancelRequest(request.id)}
+                  className="cancel-request-button"
+                >
+                  Cancel Request
                 </button>
               </div>
             ))}

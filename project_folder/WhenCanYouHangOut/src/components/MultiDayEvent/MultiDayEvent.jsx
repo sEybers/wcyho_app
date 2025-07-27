@@ -39,7 +39,7 @@ const MultiDayEvent = ({ selectedDays, handleMultiDayEvent, handleDayToggle, sta
                         required
                         className="time-input"
                     />
-                    <select name="status" required className="status-select">
+                    <select name="status" required className="status-select" defaultValue="Free">
                         {statusOptions.map(status => (
                             <option key={status} value={status}>
                                 {status}
