@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { apiService } from '../../services/api';
+// In Auth.jsx
+import { apiService } from '../../services/api.js';
 import { testSchedules } from '../../utils/testData';
 import '../../css/Auth.css';
 

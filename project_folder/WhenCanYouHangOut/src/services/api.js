@@ -1,76 +1,137 @@
+import axios from 'axios';
+
 const API_URL = 'http://localhost:5000/api';
 
+// Create axios instance
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// Add auth token to requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['x-auth-token'] = token;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 class ApiService {
-    constructor() {
-        this.initializeStorage();
+  // Auth
+  async login(credentials) {
+    try {
+      const response = await api.post('/auth/login', credentials);
+      
+      // Save auth data in localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      return response.data.user;
+    } catch (error) {
+      throw new Error(error.response?.data?.error || 'Login failed');
     }
+  }
 
-    initializeStorage() {
-        if (!localStorage.getItem('users')) {
-            localStorage.setItem('users', JSON.stringify({}));
-        }
-        if (!localStorage.getItem('schedules')) {
-            localStorage.setItem('schedules', JSON.stringify({}));
-        }
+  async register(userData) {
+    try {
+      const response = await api.post('/users', userData);
+      
+      // Save auth data in localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      return response.data.user;
+    } catch (error) {
+      throw new Error(error.response?.data?.error || 'Registration failed');
     }
+  }
+  
+  async logout() {
+    // Clear localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
 
-    async register(userData) {
-        try {
-            const users = JSON.parse(localStorage.getItem('users'));
-            
-            // Check if user exists
-            if (users[userData.email]) {
-                throw new Error('User already exists');
-            }
+  // Check if user is logged in
+  isAuthenticated() {
+    return !!localStorage.getItem('token');
+  }
 
-            // Create new user
-            const userId = Date.now().toString();
-            const newUser = {
-                id: userId,
-                username: userData.username,
-                email: userData.email,
-                schedules: {}
-            };
+  // Get current user
+  getCurrentUser() {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  }
 
-            users[userData.email] = newUser;
-            localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('currentUser', JSON.stringify(newUser));
-
-            return newUser;
-        } catch (error) {
-            console.error('Registration error:', error);
-            throw error;
-        }
+  // Refresh user data
+  async refreshUserData() {
+    if (!this.isAuthenticated()) return null;
+    
+    try {
+      const response = await api.get('/auth');
+      localStorage.setItem('user', JSON.stringify(response.data));
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        // Token expired or invalid
+        this.logout();
+      }
+      return null;
     }
+  }
 
-    async login(credentials) {
-        try {
-            const users = JSON.parse(localStorage.getItem('users'));
-            const user = users[credentials.email];
+  // Schedules
+  async getSchedules() {
+    const response = await api.get('/schedules');
+    return response.data;
+  }
 
-            if (!user) {
-                throw new Error('Invalid credentials');
-            }
+  async createSchedule(name) {
+    const response = await api.post('/schedules', { name });
+    return response.data;
+  }
 
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            return user;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
-    }
+  async updateSchedule(id, data) {
+    const response = await api.put(`/schedules/${id}`, data);
+    return response.data;
+  }
 
-    logout() {
-        localStorage.removeItem('currentUser');
-    }
+  async deleteSchedule(id) {
+    await api.delete(`/schedules/${id}`);
+  }
 
-    getCurrentUser() {
-        return JSON.parse(localStorage.getItem('currentUser'));
-    }
+  // Friends
+  async getFriends() {
+    const response = await api.get('/friends');
+    return response.data;
+  }
 
-    isAuthenticated() {
-        return !!localStorage.getItem('currentUser');
-    }
+  async searchUsers(query, field = 'username') {
+    const response = await api.get(`/users/search?query=${query}&field=${field}`);
+    return response.data;
+  }
+
+  async sendFriendRequest(userId) {
+    await api.post(`/friends/request/${userId}`);
+  }
+
+  async acceptFriendRequest(userId) {
+    await api.put(`/friends/accept/${userId}`);
+  }
+
+  async rejectFriendRequest(userId) {
+    await api.delete(`/friends/reject/${userId}`);
+  }
+
+  async removeFriend(userId) {
+    await api.delete(`/friends/${userId}`);
+  }
 }
 
 export const apiService = new ApiService();

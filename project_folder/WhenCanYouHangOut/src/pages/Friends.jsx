@@ -10,18 +10,26 @@ function Friends({ userId }) {
   const [friendRequests, setFriendRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
 
-  // Mock function to simulate searching users
+  // Add this to your existing Friends component
+  const getAllUsers = () => {
+    // Get all users from localStorage for search
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    return Object.values(users).filter(user => user.id !== userId);
+  };
+
+  // Enhanced search with filtering
   const handleSearch = (e) => {
     e.preventDefault();
-    // This would typically be an API call to your backend
-    const mockResults = [
-      { id: 1, username: 'john_doe', email: 'john@example.com' },
-      { id: 2, username: 'jane_smith', email: 'jane@example.com' },
-    ];
-    setSearchResults(mockResults.filter(user => 
-      !friends.find(friend => friend.id === user.id) &&
-      !sentRequests.find(request => request.id === user.id)
-    ));
+    const allUsers = getAllUsers();
+    
+    const filteredUsers = allUsers.filter(user => {
+      const searchField = searchType === 'username' ? user.username : user.email;
+      return searchField.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !friends.find(friend => friend.id === user.id) &&
+        !sentRequests.find(request => request.id === user.id);
+    });
+    
+    setSearchResults(filteredUsers);
   };
 
   const handleSendRequest = (user) => {
