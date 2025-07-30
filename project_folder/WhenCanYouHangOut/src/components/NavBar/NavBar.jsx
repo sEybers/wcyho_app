@@ -28,6 +28,9 @@ const NavBar = ({ onLogout, username, userRole }) => {
             <Link to="/friends" className="nav-link">Friends</Link>
           </li>
           <li className="nav-item">
+            <Link to="/settings" className="nav-link">Settings</Link>
+          </li>
+          <li className="nav-item">
             <span className="username-display">{username}</span>
           </li>
           <li className="nav-item">

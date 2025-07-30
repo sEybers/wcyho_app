@@ -52,7 +52,7 @@ class ApiService {
     }
   }
   
-  async logout() {
+  logout() {
     // Clear localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -63,12 +63,22 @@ class ApiService {
     return !!localStorage.getItem('token');
   }
 
-  // Get current user
+  // Add getCurrentUser method
   getCurrentUser() {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    try {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+      
+      if (token && user) {
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
   }
-
+  
   // Refresh user data
   async refreshUserData() {
     if (!this.isAuthenticated()) return null;
@@ -112,8 +122,18 @@ class ApiService {
     return response.data;
   }
 
+  async getFriendsWithSchedules() {
+    const response = await api.get('/friends/with-schedules');
+    return response.data;
+  }
+
   async searchUsers(query, field = 'username') {
     const response = await api.get(`/users/search?query=${query}&field=${field}`);
+    return response.data;
+  }
+
+  async getFriendRequests() {
+    const response = await api.get('/friends/requests');
     return response.data;
   }
 
@@ -129,8 +149,23 @@ class ApiService {
     await api.delete(`/friends/reject/${userId}`);
   }
 
+  async cancelFriendRequest(userId) {
+    await api.delete(`/friends/cancel/${userId}`);
+  }
+
   async removeFriend(userId) {
     await api.delete(`/friends/${userId}`);
+  }
+
+  // User Settings
+  async getUserSettings() {
+    const response = await api.get('/users/settings');
+    return response.data;
+  }
+
+  async updatePrimarySchedule(scheduleId) {
+    const response = await api.put('/users/settings/primary-schedule', { scheduleId });
+    return response.data;
   }
 }
 

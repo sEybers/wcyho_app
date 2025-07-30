@@ -1,66 +1,152 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
+import { apiService } from '../services/api.js';
 import FriendRequests from '../components/FriendRequests/FriendRequests';
 import '../css/Friends.css';
 
-function Friends({ userId }) {
+function Friends() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('username'); // or 'email'
   const [friends, setFriends] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Add this to your existing Friends component
-  const getAllUsers = () => {
-    // Get all users from localStorage for search
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    return Object.values(users).filter(user => user.id !== userId);
-  };
+  // Load initial data
+  useEffect(() => {
+    loadFriends();
+    loadFriendRequests();
+  }, []);
 
-  // Enhanced search with filtering
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const allUsers = getAllUsers();
-    
-    const filteredUsers = allUsers.filter(user => {
-      const searchField = searchType === 'username' ? user.username : user.email;
-      return searchField.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !friends.find(friend => friend.id === user.id) &&
-        !sentRequests.find(request => request.id === user.id);
-    });
-    
-    setSearchResults(filteredUsers);
-  };
-
-  const handleSendRequest = (user) => {
-    // This would typically be an API call
-    setSentRequests([...sentRequests, user]);
-    setSearchResults(searchResults.filter(result => result.id !== user.id));
-  };
-
-  const handleAcceptRequest = (requestId) => {
-    const request = friendRequests.find(req => req.id === requestId);
-    if (request) {
-      setFriends([...friends, request]);
-      setFriendRequests(friendRequests.filter(req => req.id !== requestId));
+  const loadFriends = async () => {
+    try {
+      const friendsData = await apiService.getFriends();
+      setFriends(friendsData);
+    } catch (error) {
+      console.error('Error loading friends:', error);
+      setError('Failed to load friends');
     }
   };
 
-  const handleRejectRequest = (requestId) => {
-    setFriendRequests(friendRequests.filter(req => req.id !== requestId));
+  const loadFriendRequests = async () => {
+    try {
+      const requestsData = await apiService.getFriendRequests();
+      setFriendRequests(requestsData.received);
+      setSentRequests(requestsData.sent);
+    } catch (error) {
+      console.error('Error loading friend requests:', error);
+      setError('Failed to load friend requests');
+    }
   };
 
-  const handleCancelRequest = (userId) => {
-    setSentRequests(sentRequests.filter(request => request.id !== userId));
+  // Enhanced search with API
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      setLoading(true);
+      setError('');
+      
+      const users = await apiService.searchUsers(searchQuery, searchType);
+      
+      // Filter out current user, friends, and sent requests
+      const filteredUsers = users.filter(user => 
+        !friends.find(friend => friend._id === user._id) &&
+        !sentRequests.find(request => request._id === user._id)
+      );
+      
+      setSearchResults(filteredUsers);
+    } catch (error) {
+      console.error('Search error:', error);
+      setError('Failed to search users');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRemoveFriend = (userId) => {
-    setFriends(friends.filter(friend => friend.id !== userId));
+  const handleSendRequest = async (user) => {
+    try {
+      setError('');
+      await apiService.sendFriendRequest(user._id);
+      
+      // Move user from search results to sent requests
+      setSentRequests([...sentRequests, user]);
+      setSearchResults(searchResults.filter(result => result._id !== user._id));
+      
+      // Show success message briefly
+      const successMsg = `Friend request sent to ${user.username}!`;
+      setError(successMsg);
+      setTimeout(() => setError(''), 3000);
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      setError(error.message || 'Failed to send friend request');
+    }
+  };
+
+  const handleAcceptRequest = async (requestId) => {
+    try {
+      setError('');
+      await apiService.acceptFriendRequest(requestId);
+      
+      // Move from friend requests to friends
+      const request = friendRequests.find(req => req._id === requestId);
+      if (request) {
+        setFriends([...friends, request]);
+        setFriendRequests(friendRequests.filter(req => req._id !== requestId));
+      }
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      setError('Failed to accept friend request');
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    try {
+      setError('');
+      await apiService.rejectFriendRequest(requestId);
+      setFriendRequests(friendRequests.filter(req => req._id !== requestId));
+    } catch (error) {
+      console.error('Error rejecting friend request:', error);
+      setError('Failed to reject friend request');
+    }
+  };
+
+  const handleCancelRequest = async (userId) => {
+    try {
+      setError('');
+      await apiService.cancelFriendRequest(userId);
+      setSentRequests(sentRequests.filter(request => request._id !== userId));
+    } catch (error) {
+      console.error('Error canceling friend request:', error);
+      setError('Failed to cancel friend request');
+    }
+  };
+
+  const handleRemoveFriend = async (userId) => {
+    try {
+      setError('');
+      await apiService.removeFriend(userId);
+      setFriends(friends.filter(friend => friend._id !== userId));
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      setError('Failed to remove friend');
+    }
   };
 
   return (
     <div className="friends-container">
       <h1>Friends</h1>
+      
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => setError('')}>Dismiss</button>
+        </div>
+      )}
       
       <FriendRequests 
         requests={friendRequests}
@@ -85,9 +171,10 @@ function Friends({ userId }) {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={`Search by ${searchType}...`}
             className="search-input"
+            minLength={2}
           />
-          <button type="submit" className="search-button">
-            Search
+          <button type="submit" className="search-button" disabled={loading}>
+            {loading ? 'Searching...' : 'Search'}
           </button>
         </form>
       </div>
@@ -98,7 +185,7 @@ function Friends({ userId }) {
           <h2>Search Results</h2>
           <div className="results-list">
             {searchResults.map(user => (
-              <div key={user.id} className="user-card">
+              <div key={user._id} className="user-card">
                 <div className="user-info">
                   <p className="username">{user.username}</p>
                   <p className="email">{user.email}</p>
@@ -121,13 +208,13 @@ function Friends({ userId }) {
           <h2>Sent Requests</h2>
           <div className="requests-list">
             {sentRequests.map(request => (
-              <div key={request.id} className="request-card">
+              <div key={request._id} className="request-card">
                 <div className="request-info">
                   <p className="username">{request.username}</p>
                   <p className="email">{request.email}</p>
                 </div>
                 <button 
-                  onClick={() => handleCancelRequest(request.id)}
+                  onClick={() => handleCancelRequest(request._id)}
                   className="cancel-request-button"
                 >
                   Cancel Request
@@ -140,19 +227,19 @@ function Friends({ userId }) {
 
       {/* Friends List */}
       <div className="friends-list">
-        <h2>My Friends</h2>
+        <h2>My Friends ({friends.length})</h2>
         {friends.length === 0 ? (
-          <p>You haven't added any friends yet.</p>
+          <p>You haven't added any friends yet. Use the search above to find and add friends!</p>
         ) : (
           <div className="friends-grid">
             {friends.map(friend => (
-              <div key={friend.id} className="friend-card">
+              <div key={friend._id} className="friend-card">
                 <div className="friend-info">
                   <p className="username">{friend.username}</p>
                   <p className="email">{friend.email}</p>
                 </div>
                 <button 
-                  onClick={() => handleRemoveFriend(friend.id)}
+                  onClick={() => handleRemoveFriend(friend._id)}
                   className="remove-friend-button"
                 >
                   Remove

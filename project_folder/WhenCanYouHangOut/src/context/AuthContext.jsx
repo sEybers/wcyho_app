@@ -12,24 +12,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const storedUser = apiService.getCurrentUser();
-      if (storedUser) {
-        setUser(storedUser);
-        setIsAuthenticated(true);
+    const initAuth = () => {
+      try {
+        const storedUser = apiService.getCurrentUser();
+        if (storedUser) {
+          console.log('Found stored user:', storedUser);
+          setUser(storedUser);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initAuth();
   }, []);
 
   const login = (userData) => {
+    console.log('AuthContext login called with:', userData);
     setUser(userData);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
+    console.log('AuthContext logout called');
     apiService.logout();
     setUser(null);
     setIsAuthenticated(false);

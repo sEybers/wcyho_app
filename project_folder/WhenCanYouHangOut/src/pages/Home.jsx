@@ -1,30 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SleepSchedule from '../components/SleepSchedule/SleepSchedule';
 import MultiDayEvent from '../components/MultiDayEvent/MultiDayEvent';
 import DaySchedule from '../components/DaySchedule/DaySchedule';
 import HourlySchedule from '../components/HourlySchedule/HourlySchedule';
+import { apiService } from '../services/api.js';
 import '../css/Home.css';
-//
+
 /**
  * Home Component
  * Main dashboard for managing schedules and time ranges
- * 
- * @param {Object} props - Component props
- * @param {Object} props.schedules - Collection of all user schedules
- * @param {Function} props.setSchedules - Function to update schedules
- * @param {string} props.activeScheduleId - ID of currently active schedule
- * @param {Function} props.setActiveScheduleId - Function to change active schedule
  */
-function Home({ schedules, setSchedules, activeScheduleId, setActiveScheduleId }) {
+function Home() {
+    // State for managing all schedules and active schedule
+    const [schedules, setSchedules] = useState({});
+    const [activeScheduleId, setActiveScheduleId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
     // Initialize schedule state based on whether there's an active schedule
-    const [schedule, setSchedule] = useState(
-        activeScheduleId && schedules[activeScheduleId] ? schedules[activeScheduleId].schedule : null
-    );
+    const [schedule, setSchedule] = useState(null);
 
     // Show form by default if no schedules exist
-    const [showNewScheduleForm, setShowNewScheduleForm] = useState(
-        Object.keys(schedules).length === 0
-    );
+    const [showNewScheduleForm, setShowNewScheduleForm] = useState(false);
+
+    // Load schedules when component mounts
+    useEffect(() => {
+        const loadSchedules = async () => {
+            try {
+                setLoading(true);
+                const schedulesData = await apiService.getSchedules();
+                
+                // Convert array to object with schedule id as key
+                const schedulesObj = {};
+                if (Array.isArray(schedulesData)) {
+                    schedulesData.forEach(schedule => {
+                        schedulesObj[schedule.id] = schedule;
+                    });
+                }
+                
+                setSchedules(schedulesObj);
+                
+                // Set active schedule to first one if any exist
+                const scheduleIds = Object.keys(schedulesObj);
+                if (scheduleIds.length > 0) {
+                    const firstId = scheduleIds[0];
+                    setActiveScheduleId(firstId);
+                    setSchedule(schedulesObj[firstId].schedule);
+                } else {
+                    setShowNewScheduleForm(true);
+                }
+            } catch (error) {
+                console.error('Error loading schedules:', error);
+                setError('Failed to load schedules');
+                setShowNewScheduleForm(true);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadSchedules();
+    }, []);
+
+    // Update schedule when active schedule changes
+    useEffect(() => {
+        if (activeScheduleId && schedules[activeScheduleId]) {
+            setSchedule(schedules[activeScheduleId].schedule);
+        }
+    }, [activeScheduleId, schedules]);
 
     // State for managing sleep schedule
     const [sleepSchedule, setSleepSchedule] = useState({
@@ -315,63 +357,70 @@ function Home({ schedules, setSchedules, activeScheduleId, setActiveScheduleId }
     const statusOptions = ['Free', 'Maybe Free', 'Not Free'];
 
     // Add these handlers before the return statement
-    const handleCreateNewSchedule = (e) => {
+    const handleCreateNewSchedule = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const scheduleName = formData.get('scheduleName');
-        const scheduleId = Date.now().toString();
 
-        // Create new schedule with empty time ranges
-        const newSchedule = {
-            name: scheduleName,
-            schedule: {
-                Sunday: { timeRanges: [] },
-                Monday: { timeRanges: [] },
-                Tuesday: { timeRanges: [] },
-                Wednesday: { timeRanges: [] },
-                Thursday: { timeRanges: [] },
-                Friday: { timeRanges: [] },
-                Saturday: { timeRanges: [] }
-            }
-        };
+        try {
+            // Call the API to create schedule
+            const createdSchedule = await apiService.createSchedule(scheduleName);
+            
+            // Update schedules state with new schedule
+            setSchedules(prev => ({
+                ...prev,
+                [createdSchedule.id]: createdSchedule
+            }));
 
-        // Update schedules state with new schedule
-        setSchedules(prev => ({
-            ...prev,
-            [scheduleId]: newSchedule
-        }));
-
-        // Switch to the new schedule
-        setActiveScheduleId(scheduleId);
-        setSchedule(newSchedule.schedule);
-        
-        // Close the form
-        setShowNewScheduleForm(false);
-        e.target.reset();
+            // Don't automatically switch to new schedule - let user manually switch
+            // This prevents appearing to "overwrite" the current schedule
+            
+            // Close the form
+            setShowNewScheduleForm(false);
+            e.target.reset();
+            
+            // Show success message
+            setError(`Schedule "${scheduleName}" created successfully! You can switch to it using the dropdown above.`);
+            setTimeout(() => setError(''), 5000);
+        } catch (error) {
+            console.error('Error creating schedule:', error);
+            setError('Failed to create schedule');
+        }
     };
 
     const handleSwitchSchedule = (scheduleId) => {
-        setActiveScheduleId(scheduleId);
-        setSchedule(schedules[scheduleId].schedule);
+        if (schedules && schedules[scheduleId]) {
+            setActiveScheduleId(scheduleId);
+            setSchedule(schedules[scheduleId].schedule);
+        }
     };
 
-    const handleDeleteSchedule = (scheduleId) => {
-        setSchedules(prev => {
-            const newSchedules = { ...prev };
-            delete newSchedules[scheduleId];
-            return newSchedules;
-        });
-        
-        // If there are other schedules, switch to the first one
-        // Otherwise, clear the active schedule
-        const remainingIds = Object.keys(schedules).filter(id => id !== scheduleId);
-        if (remainingIds.length > 0) {
-            setActiveScheduleId(remainingIds[0]);
-            setSchedule(schedules[remainingIds[0]].schedule);
-        } else {
-            setActiveScheduleId(null);
-            setSchedule(null);
-            setShowNewScheduleForm(true);
+    const handleDeleteSchedule = async (scheduleId) => {
+        try {
+            // Call the API to delete schedule
+            await apiService.deleteSchedule(scheduleId);
+            
+            // Update local state
+            setSchedules(prev => {
+                const newSchedules = { ...prev };
+                delete newSchedules[scheduleId];
+                return newSchedules;
+            });
+            
+            // If there are other schedules, switch to the first one
+            // Otherwise, clear the active schedule
+            const remainingIds = schedules ? Object.keys(schedules).filter(id => id !== scheduleId) : [];
+            if (remainingIds.length > 0 && schedules) {
+                setActiveScheduleId(remainingIds[0]);
+                setSchedule(schedules[remainingIds[0]].schedule);
+            } else {
+                setActiveScheduleId(null);
+                setSchedule(null);
+                setShowNewScheduleForm(true);
+            }
+        } catch (error) {
+            console.error('Error deleting schedule:', error);
+            setError('Failed to delete schedule');
         }
     };
 
@@ -380,13 +429,31 @@ function Home({ schedules, setSchedules, activeScheduleId, setActiveScheduleId }
         <div className="home-container">
             <h1>Dashboard</h1>
             
+            {/* Loading state */}
+            {loading && (
+                <div className="loading">
+                    <p>Loading schedules...</p>
+                </div>
+            )}
+            
+            {/* Error state */}
+            {error && (
+                <div className="error">
+                    <p>Error: {error}</p>
+                    <button onClick={() => setError(null)}>Dismiss</button>
+                </div>
+            )}
+            
             {/* Show welcome message if no schedules exist */}
-            {Object.keys(schedules).length === 0 ? (
+            {!loading && (!schedules || Object.keys(schedules).length === 0) && (
                 <div className="welcome-section">
                     <h2>Welcome to When Can You Hang Out?</h2>
                     <p>Get started by creating your first schedule.</p>
                 </div>
-            ) : (
+            )}
+            
+            {/* Show schedule management if schedules exist and not loading */}
+            {!loading && schedules && Object.keys(schedules).length > 0 && (
                 <div className="schedule-management">
                     <div className="schedule-selector">
                         <select 
@@ -424,7 +491,7 @@ function Home({ schedules, setSchedules, activeScheduleId, setActiveScheduleId }
                         autoFocus
                     />
                     <button type="submit">Create</button>
-                    {Object.keys(schedules).length > 0 && (
+                    {schedules && Object.keys(schedules).length > 0 && (
                         <button 
                             type="button" 
                             onClick={() => setShowNewScheduleForm(false)}

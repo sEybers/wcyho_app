@@ -34,6 +34,11 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  primarySchedule: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Schedule',
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -45,21 +50,9 @@ UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
   try {
-    const salt = await bcrypt.genSalt(10);    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt); salt);
-
-
-
-
-
-
-
-
-
-
-
-
-module.exports = mongoose.model('User', UserSchema);};  return bcrypt.compare(candidatePassword, this.password);UserSchema.methods.comparePassword = async function(candidatePassword) {// Method to compare passwords});  }    next(error);  } catch (error) {    next();    next();
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
   } catch (error) {
     next(error);
   }

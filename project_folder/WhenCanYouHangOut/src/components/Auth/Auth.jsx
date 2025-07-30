@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-// In Auth.jsx
 import { apiService } from '../../services/api.js';
-import { testSchedules } from '../../utils/testData';
 import '../../css/Auth.css';
 
 const Auth = ({ onLogin }) => {
@@ -21,80 +19,88 @@ const Auth = ({ onLogin }) => {
         };
 
         try {
-            console.log('Submitting credentials:', { email: credentials.email });
-            const data = await (isLogin 
-                ? apiService.login(credentials)
-                : apiService.register({
+            console.log('Attempting login with:', credentials.email);
+            
+            if (isLogin) {
+                // Login
+                const userData = await apiService.login(credentials);
+                console.log('Login successful:', userData);
+                onLogin(userData);
+            } else {
+                // Register
+                const registerData = {
                     ...credentials,
                     username: formData.get('username')
-                  }));
-            onLogin(data);
+                };
+                const userData = await apiService.register(registerData);
+                console.log('Registration successful:', userData);
+                onLogin(userData);
+            }
         } catch (error) {
             console.error('Auth error:', error);
-            setError(`Authentication failed: ${error.message}`);
+            setError(error.message);
         } finally {
             setLoading(false);
         }
     };
 
-    // Add dev login handler
-    const handleDevLogin = () => {
-        const devUser = {
-            userId: 'dev-123',
-            username: 'Test User',
-            email: 'test@example.com',
-            schedules: testSchedules
-        };
-        onLogin(devUser);
-    };
-
     return (
         <div className="auth-container">
-            <div className="auth-card">
-                <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
+            <div className="auth-form">
+                <h2>{isLogin ? 'Login' : 'Register'}</h2>
+                {error && <div className="error-message">{error}</div>}
+                
                 <form onSubmit={handleSubmit}>
-                    <input
-                        type="text"
-                        name="username"
-                        placeholder="Username"
-                        required={!isLogin}
-                    />
                     {!isLogin && (
+                        <div className="form-group">
+                            <input
+                                type="text"
+                                name="username"
+                                placeholder="Username"
+                                required
+                            />
+                        </div>
+                    )}
+                    
+                    <div className="form-group">
                         <input
                             type="email"
                             name="email"
                             placeholder="Email"
                             required
                         />
-                    )}
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        required
-                    />
+                    </div>
+                    
+                    <div className="form-group">
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            required
+                        />
+                    </div>
+                    
                     <button type="submit" disabled={loading}>
-                        {loading ? 'Processing...' : (isLogin ? 'Login' : 'Sign Up')}
+                        {loading ? 'Loading...' : (isLogin ? 'Login' : 'Register')}
                     </button>
                 </form>
-                {error && <div className="error-message">{error}</div>}
-                <button 
-                    className="switch-auth-btn"
-                    onClick={() => setIsLogin(!isLogin)}
-                >
-                    {isLogin ? 'Need an account? Sign Up' : 'Have an account? Login'}
-                </button>
-
-                {/* Add development mode button */}
-                {import.meta.env.DEV && (
+                
+                <p>
+                    {isLogin ? "Don't have an account? " : "Already have an account? "}
                     <button 
-                        type="button"
-                        onClick={handleDevLogin}
-                        className="dev-bypass-btn"
+                        type="button" 
+                        className="link-button"
+                        onClick={() => setIsLogin(!isLogin)}
                     >
-                        Use Test Schedules
+                        {isLogin ? 'Register' : 'Login'}
                     </button>
-                )}
+                </p>
+                
+                <div className="test-credentials">
+                    <p><strong>Test Login:</strong></p>
+                    <p>Email: test@test.com</p>
+                    <p>Password: test123</p>
+                </div>
             </div>
         </div>
     );

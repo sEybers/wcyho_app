@@ -19,6 +19,49 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// @route   GET api/friends/with-schedules
+// @desc    Get user's friends with their primary schedules
+// @access  Private
+router.get('/with-schedules', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate({
+        path: 'friends',
+        select: 'username email primarySchedule',
+        populate: {
+          path: 'primarySchedule',
+          select: 'name schedule'
+        }
+      })
+      .select('friends');
+    
+    res.json(user.friends);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   GET api/friends/requests
+// @desc    Get pending friend requests
+// @access  Private
+router.get('/requests', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate('friendRequests', 'username email _id')
+      .populate('sentRequests', 'username email _id')
+      .select('friendRequests sentRequests');
+    
+    res.json({
+      received: user.friendRequests,
+      sent: user.sentRequests
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // @route   POST api/friends/request/:id
 // @desc    Send friend request
 // @access  Private
@@ -124,6 +167,38 @@ router.delete('/reject/:id', auth, async (req, res) => {
     await sender.save();
 
     res.json({ msg: 'Friend request rejected' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   DELETE api/friends/cancel/:id
+// @desc    Cancel sent friend request
+// @access  Private
+router.delete('/cancel/:id', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const recipient = await User.findById(req.params.id);
+
+    if (!recipient) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Remove from sent requests for current user
+    user.sentRequests = user.sentRequests.filter(
+      id => id.toString() !== req.params.id
+    );
+    
+    // Remove from friend requests for recipient
+    recipient.friendRequests = recipient.friendRequests.filter(
+      id => id.toString() !== req.user.id
+    );
+
+    await user.save();
+    await recipient.save();
+
+    res.json({ msg: 'Friend request cancelled' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

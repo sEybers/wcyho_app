@@ -6,12 +6,13 @@ import Home from './pages/Home';
 import WeeklyView from './pages/WeeklyView';
 import Compare from './components/CompareSchedules/CompareSchedules.jsx';
 import Friends from './pages/Friends';
+import Settings from './pages/Settings';
 import Auth from './components/Auth/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserManagement from './components/Admin/UserManagement.jsx'
 
 const AppRouter = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, login } = useAuth();
 
   return (
     <>
@@ -25,7 +26,7 @@ const AppRouter = () => {
       
       <Routes>
         <Route path="/login" element={
-          isAuthenticated ? <Navigate to="/" /> : <Auth />
+          isAuthenticated ? <Navigate to="/" /> : <Auth onLogin={login} />
         } />
         
         <Route path="/" element={
@@ -49,6 +50,12 @@ const AppRouter = () => {
         <Route path="/friends" element={
           <ProtectedRoute>
             <Friends userId={user?.id} />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         } />
         
