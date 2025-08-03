@@ -2,7 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import NavBar from './components/NavBar/NavBar';
-import Home from './pages/Home';
+import Home from './pages/Home_new';
+import HomeOld from './pages/Home';
 import WeeklyView from './pages/WeeklyView';
 import Compare from './components/CompareSchedules/CompareSchedules.jsx';
 import Friends from './pages/Friends';
@@ -32,6 +33,12 @@ const AppRouter = () => {
         <Route path="/" element={
           <ProtectedRoute>
             <Home />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/home-old" element={
+          <ProtectedRoute>
+            <HomeOld />
           </ProtectedRoute>
         } />
         

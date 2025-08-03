@@ -7,22 +7,31 @@ const TimeRangeSchema = new mongoose.Schema({
   },
   start: {
     type: String,
-    required: true
+    required: true,
+    validate: {
+      validator: function(v) {
+        return /^\d{2}:\d{2}$/.test(v);
+      },
+      message: 'Start time must be in HH:MM format'
+    }
   },
   end: {
     type: String,
-    required: true
+    required: true,
+    validate: {
+      validator: function(v) {
+        return /^\d{2}:\d{2}$/.test(v);
+      },
+      message: 'End time must be in HH:MM format'
+    }
   },
   status: {
     type: String,
     enum: ['Free', 'Maybe Free', 'Not Free'],
     required: true
-  },
-  id: {
-    type: Number,
-    required: false
   }
-});
+  // Remove the id field since it's causing issues and not needed
+}, { _id: true }); // Let MongoDB auto-generate _id for each time range
 
 const DaySchema = new mongoose.Schema({
   timeRanges: [TimeRangeSchema]

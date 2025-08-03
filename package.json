@@ -1,0 +1,24 @@
+{
+  "name": "wcyho_app",
+  "version": "1.0.0",
+  "description": "A web application designed to simplify the process of coordinating casual hangouts by comparing schedules between friends.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "cd project_folder/WhenCanYouHangOut && npm run build",
+    "start": "cd server && node server.js",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd project_folder/WhenCanYouHangOut && npm run dev\"",
+    "install-all": "cd server && npm install && cd ../project_folder/WhenCanYouHangOut && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sEybers/wcyho_app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sEybers/wcyho_app/issues"
+  },
+  "homepage": "https://github.com/sEybers/wcyho_app#readme"
+}

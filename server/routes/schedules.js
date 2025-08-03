@@ -55,27 +55,69 @@ router.put('/:id', auth, async (req, res) => {
   const { name, schedule } = req.body;
 
   try {
+    console.log('PUT /api/schedules/:id called with:', {
+      id: req.params.id,
+      body: req.body,
+      userId: req.user.id
+    });
+
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      console.log('Invalid ObjectId format:', req.params.id);
+      return res.status(400).json({ error: 'Invalid schedule ID format' });
+    }
+
     let scheduleItem = await Schedule.findById(req.params.id);
 
     if (!scheduleItem) {
+      console.log('Schedule not found:', req.params.id);
       return res.status(404).json({ error: 'Schedule not found' });
     }
 
     // Make sure user owns the schedule
     if (scheduleItem.user.toString() !== req.user.id) {
+      console.log('Authorization failed - user mismatch:', {
+        scheduleUser: scheduleItem.user.toString(),
+        requestUser: req.user.id
+      });
       return res.status(401).json({ error: 'Not authorized' });
     }
 
+    // Validate and sanitize update data
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (schedule !== undefined) {
+      console.log('Schedule update data:', JSON.stringify(schedule, null, 2));
+      updateData.schedule = schedule;
+    }
+    updateData.lastModified = new Date();
+
+    console.log('Final update data:', JSON.stringify(updateData, null, 2));
+
     scheduleItem = await Schedule.findByIdAndUpdate(
       req.params.id,
-      { $set: { name, schedule } },
-      { new: true }
+      { $set: updateData },
+      { new: true, runValidators: true }
     );
 
+    console.log('Successfully updated schedule');
     res.json(scheduleItem);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Error updating schedule:', err);
+    console.error('Error stack:', err.stack);
+    if (err.name === 'ValidationError') {
+      console.error('Validation errors:', err.errors);
+      return res.status(400).json({ 
+        error: 'Invalid schedule data', 
+        details: err.message,
+        validationErrors: err.errors
+      });
+    }
+    if (err.name === 'CastError') {
+      console.error('Cast error:', err);
+      return res.status(400).json({ error: 'Invalid schedule ID' });
+    }
+    res.status(500).json({ error: 'Server error', message: err.message });
   }
 });
 
