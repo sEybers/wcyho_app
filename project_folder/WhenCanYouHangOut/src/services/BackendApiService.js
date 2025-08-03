@@ -1,4 +1,4 @@
-const API_URL = 'https://your-api-server.com/api';
+const API_URL = 'http://localhost:5000/api';
 
 class BackendApiService {
   async login(credentials) {

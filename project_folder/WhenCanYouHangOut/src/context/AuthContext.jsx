@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
       try {
         const storedUser = apiService.getCurrentUser();
         if (storedUser) {
-          console.log('Found stored user:', storedUser);
           setUser(storedUser);
           setIsAuthenticated(true);
         }

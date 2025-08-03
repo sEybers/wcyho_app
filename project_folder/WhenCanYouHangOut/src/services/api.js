@@ -108,8 +108,14 @@ class ApiService {
   }
 
   async updateSchedule(id, data) {
-    const response = await api.put(`/schedules/${id}`, data);
-    return response.data;
+    try {
+      console.log('Updating schedule:', id, 'with data:', data);
+      const response = await api.put(`/schedules/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('API updateSchedule error:', error.response?.data || error.message);
+      throw error;
+    }
   }
 
   async deleteSchedule(id) {
