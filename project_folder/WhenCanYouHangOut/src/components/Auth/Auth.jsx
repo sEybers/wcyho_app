@@ -95,12 +95,7 @@ const Auth = ({ onLogin }) => {
                         {isLogin ? 'Register' : 'Login'}
                     </button>
                 </p>
-                
-                <div className="test-credentials">
-                    <p><strong>Test Login:</strong></p>
-                    <p>Email: test@test.com</p>
-                    <p>Password: test123</p>
-                </div>
+
             </div>
         </div>
     );
