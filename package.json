@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd project_folder/WhenCanYouHangOut && npm run build",
+    "netlify-build": "cd project_folder/WhenCanYouHangOut && npm install && npm run build",
     "start": "cd server && node server.js",
     "dev": "concurrently \"cd server && npm run dev\" \"cd project_folder/WhenCanYouHangOut && npm run dev\"",
     "install-all": "cd server && npm install && cd ../project_folder/WhenCanYouHangOut && npm install"
