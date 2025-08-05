@@ -5,7 +5,7 @@
 
 [build]
   base = "project_folder/WhenCanYouHangOut"
-  publish = "project_folder/WhenCanYouHangOut/dist"
+  publish = "dist"
   command = "npm run build"
 
 [build.environment]
@@ -15,6 +15,6 @@
 # API proxy for development/testing
 [[redirects]]
   from = "/api/*"
-  to = "https://your-backend-url.railway.app/api/:splat"
+  to = "https://your-actual-railway-backend-url.up.railway.app/api/:splat"
   status = 200
   force = true
