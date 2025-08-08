@@ -6,6 +6,9 @@ const connectDB = require('./config/db');
 // Initialize Express
 const app = express();
 
+// Trust proxy (Render/Netlify proxies)
+app.set('trust proxy', 1);
+
 // Connect to MongoDB
 connectDB();
 
@@ -55,7 +58,7 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
 };
 
 // Middleware
@@ -66,7 +69,7 @@ app.use((req, res, next) => {
   // Set additional CORS headers
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-auth-token');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
@@ -84,6 +87,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Healthcheck & root endpoints for Render
+app.get('/', (req, res) => {
+  res.status(200).send('OK');
+});
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Routes
 app.use('/api/users', require('./routes/users'));
 app.use('/api/auth', require('./routes/auth'));
@@ -97,4 +111,4 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT} (env: ${process.env.NODE_ENV || 'development'})`));
