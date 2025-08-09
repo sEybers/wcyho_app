@@ -12,31 +12,44 @@ app.set('trust proxy', 1);
 // Connect to MongoDB
 connectDB();
 
-// Simplified & permissive CORS (reflect requesting origin) to resolve current blocking
+// CORS configuration
 const corsOptions = {
-  origin: (origin, callback) => {
-    console.log('[CORS] Incoming origin:', origin);
-    return callback(null, true); // reflect any origin
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://wcyho.netlify.app',
+      'https://wcyho-backend.onrender.com'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
   },
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','x-auth-token'],
-  credentials: false, // not using cookies; allows wildcard style reflection without credential risk
-  optionsSuccessStatus: 204
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['x-auth-token'],
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 };
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
-// Ensure CORS headers also appear on error responses
-app.use((req, res, next) => {
-  res.setHeader('Vary', 'Origin');
-  next();
-});
+app.use(cors(corsOptions));
+
+// Additional CORS handling for preflight requests
+app.options('*', cors(corsOptions));
 
 // Middleware
 app.use(express.json());
 
 // Debug logging
-app.use((req,res,next)=>{ console.log(`[REQ] ${req.method} ${req.path} Origin:${req.headers.origin || 'n/a'}`); next(); });
+app.use((req,res,next)=>{ console.log(`[REQ] ${req.method} ${req.path}`); next(); });
 
 // Healthcheck & root endpoints for Render
 app.get('/', (req, res) => {
@@ -49,27 +62,17 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Lightweight GET for /api/users (non-sensitive) before router
-app.get('/api/users', (req,res)=>res.status(200).json({status:'ok'}));
-
 // Routes
 app.use('/api/users', require('./routes/users'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/schedules', require('./routes/schedules'));
 app.use('/api/friends', require('./routes/friends'));
 
-// Error handler with CORS header reflection
+// Error handler
 app.use((err, req, res, next) => {
   console.error('[ERROR]', err.message);
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  }
-  const status = err.message && err.message.includes('CORS') ? 403 : 500;
-  res.status(status).json({ error: status === 403 ? 'CORS denied' : 'Server error' });
+  res.status(500).json({ error: 'Server error' });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT} (permissive CORS mode active)`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT} with CORS enabled`));
