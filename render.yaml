@@ -16,3 +16,5 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://wcyho.netlify.app
