@@ -12,9 +12,9 @@
   NODE_VERSION = "18"
   NPM_VERSION = "8"
 
-# API proxy for development/testing
+# API proxy for development/testing (update domain with update-backend-url.ps1)
 [[redirects]]
   from = "/api/*"
-  to = "https://wcyho-backend.onrender.com/api/:splat"
+  to = "https://wcyho-backend.onrender.com/:splat"
   status = 200
   force = true
